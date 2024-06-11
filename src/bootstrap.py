@@ -8,7 +8,6 @@ load_dotenv()
 
 class Config:
     SYSTEM_MESSAGE = "You are a helpful assistant."
-    BOT_NAME = os.getenv("BOT_NAME")
     MODEL_NAME = os.getenv("MODEL_NAME")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 

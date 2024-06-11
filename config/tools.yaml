@@ -1,0 +1,13 @@
+tools:
+  - type: function
+    function:
+      name: go_to_page
+      description: Navigates to a specified URL
+      parameters:
+        type: object
+        properties:
+          url:
+            type: string
+            description: The URL to navigate to.
+        required:
+          - url

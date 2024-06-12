@@ -3,6 +3,25 @@ import json
 from typing import Dict, Any
 import os
 from datetime import datetime
+from web_browser import WebBrowser
+
+
+class DependenciesContainer:
+    def __init__(self, **dependencies):
+        self.dependencies = dependencies
+
+    def get(self, key, default=None):
+        """Retrieve a dependency by key."""
+        return self.dependencies.get(key, default)
+
+    def set(self, key, value):
+        """Set a dependency."""
+        self.dependencies[key] = value
+
+    def remove(self, key):
+        """Remove a dependency."""
+        if key in self.dependencies:
+            del self.dependencies[key]
 
 
 class AITaskRegistry:
@@ -63,20 +82,146 @@ class TakeScreenshotTask(Task):
             raise ValueError("Web browser dependency is missing")
 
 
+class MetadataExtractor(ABC):
+    @abstractmethod
+    async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
+        pass
+
+
+class FormMetadataExtractor(MetadataExtractor):
+    async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
+        forms = await FormUtils.get_forms(browser)
+        return {"forms": forms}
+
+
+class H1MetadataExtractor(MetadataExtractor):
+    async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
+        h1_elements = await browser.page.query_selector_all("h1")
+        h1_data = [
+            {
+                "id": await h1.get_attribute("id"),
+                "class": await h1.get_attribute("class"),
+                "inner_text": await h1.inner_text(),
+            }
+            for h1 in h1_elements
+        ]
+        return {"h1": h1_data}
+
+
+class H2MetadataExtractor(MetadataExtractor):
+    async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
+        h2_elements = await browser.page.query_selector_all("h2")
+        h2_data = [
+            {
+                "id": await h2.get_attribute("id"),
+                "class": await h2.get_attribute("class"),
+                "inner_text": await h2.inner_text(),
+            }
+            for h2 in h2_elements
+        ]
+        return {"h2": h2_data}
+
+
+class LinksMetadataExtractor(MetadataExtractor):
+    async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
+        link_elements = await browser.page.query_selector_all("a")
+        links_data = [
+            {
+                "href": await link.get_attribute("href"),
+                "inner_text": await link.inner_text(),
+            }
+            for link in link_elements
+        ]
+        return {"links": links_data}
+
+
+class PageTitleExtractor(MetadataExtractor):
+    async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
+        title_element = await browser.page.query_selector("title")
+        title_text = await title_element.inner_text() if title_element else ""
+        return {"title": title_text}
+
+
+class ImagesMetadataExtractor(MetadataExtractor):
+    async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
+        img_elements = await browser.page.query_selector_all("img")
+        images_data = [
+            {
+                "src": await img.get_attribute("src"),
+                "alt": await img.get_attribute("alt"),
+            }
+            for img in img_elements
+        ]
+        return {"images": images_data}
+
+
+class MetaDescriptionExtractor(MetadataExtractor):
+    async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
+        meta_description = await browser.page.query_selector("meta[name='description']")
+        description_content = (
+            await meta_description.get_attribute("content") if meta_description else ""
+        )
+        return {"meta_description": description_content}
+
+
+class MetadataManager:
+    def __init__(self, extractors: list[MetadataExtractor]):
+        self.extractors = extractors
+
+    async def extract_all(self, browser: "WebBrowser") -> Dict[str, Any]:
+        metadata = {}
+        for extractor in self.extractors:
+            metadata.update(await extractor.extract(browser))
+        return metadata
+
+
 class GoToPageTask(Task):
-    async def execute(self, arguments, dependencies_container):
-        browser = dependencies_container.get("web_browser")
+    def __init__(self):
+        # Initialize MetadataManager with all the extractors you need
+        self.metadata_manager = MetadataManager(
+            [
+                FormMetadataExtractor(),
+                H1MetadataExtractor(),
+                H2MetadataExtractor(),
+                LinksMetadataExtractor(),
+                PageTitleExtractor(),
+                ImagesMetadataExtractor(),
+                MetaDescriptionExtractor(),
+            ]
+        )
+
+    async def execute(
+        self, arguments: Dict[str, Any], dependencies_container: "DependenciesContainer"
+    ) -> Dict[str, Any]:
+        browser: WebBrowser = dependencies_container.get("web_browser")
         if browser:
             await browser.navigate_to(arguments["url"])
             print("Page loaded successfully.")
-            forms = await FormUtils.get_forms(browser)
-            parsed_forms = FormParser.parse_forms(forms)
-            formatted_response = CLIResponseFormatter().format(parsed_forms)
-            file_name = ScreenshotUtils.generate_screenshot_path()
-            await browser.take_screenshot(file_name)
-            print(f"Screenshot captured and saved as: {file_name}")
-
+            metadata = await self.metadata_manager.extract_all(browser)
+            formatted_response = CLIResponseFormatter().format(metadata)
             print(formatted_response)
+            return metadata
+        else:
+            raise ValueError("Web browser dependency is missing")
+
+
+# class GoToPageTask(Task):
+#     async def execute(self, arguments, dependencies_container):
+#         browser = dependencies_container.get("web_browser")
+#         if browser:
+#             await browser.navigate_to(arguments["url"])
+#             print("Page loaded successfully.")
+
+#             # manipulate page
+#             page = browser.page
+#             forms = await FormUtils.get_forms(page)
+#             parsed_forms = FormParser.parse_forms(forms)
+#             formatted_response = CLIResponseFormatter().format(parsed_forms)
+#             # file_name = ScreenshotUtils.generate_screenshot_path()
+#             # await browser.take_screenshot(file_name)
+#             # print(f"Screenshot captured and saved as: {file_name}")
+
+#             print(formatted_response)
 
 
 class FormElementHandler(ABC):
@@ -222,13 +367,27 @@ class FormParser:
 
 
 class CLIResponseFormatter:
-    def format(self, response):
-        # Colored CLI output using ANSI escape codes
+    def format(self, metadata: Dict[str, Any]) -> str:
+        response = "Website metadata extracted successfully.\n\n"
+
+        for meta_type, details in metadata.items():
+            response += f"{meta_type.capitalize()}:\n"
+            if isinstance(details, list):
+                for detail in details:
+                    response += (
+                        "  - "
+                        + "\n      ".join(f"{k}: {v}" for k, v in detail.items())
+                        + "\n"
+                    )
+            else:
+                response += "  - " + str(details) + "\n"
+            response += "\n"
+
         return "\033[94m" + response + "\033[0m"
 
 
 class JSONResponseFormatter:
-    def format(self, response):
+    def format(self, metadata: Dict[str, Any]) -> str:
         import json
 
-        return json.dumps(response, indent=2)
+        return json.dumps(metadata, indent=2)

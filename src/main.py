@@ -1,9 +1,9 @@
 import os
 import asyncio
-import logging
 import nltk
 from bootstrap import logger, Config
-from classes import ToolsLoader, ChatAPIService, ResponseHandler
+from classes import ToolsLoader, ChatAPIService, WebBrowser, BaseResponseHandler
+import playwright
 
 nltk.download("punkt")
 
@@ -12,8 +12,7 @@ class ChatbotApp:
     def __init__(self):
         self.api_key: str = Config.OPENAI_API_KEY
         self.system_message: str = Config.SYSTEM_MESSAGE
-        self.chat_api_service: ChatAPIService
-        self.response_handler: ResponseHandler
+        self.web_browser: WebBrowser = WebBrowser()
         self.tools_loader: ToolsLoader = self.setup_tools_loader()
         self.chat_api_service, self.response_handler = self.setup_chat_services()
 
@@ -21,7 +20,7 @@ class ChatbotApp:
         base_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(base_dir, "..", "config", "tools.yaml")
 
-    def setup_tools_loader(self) -> str:
+    def setup_tools_loader(self) -> ToolsLoader:
         tools_definition_file = self.get_absolute_path("../config/tools.yaml")
         tools_loader = ToolsLoader(tools_definition_file)
         tools_loader.load_tools()
@@ -29,9 +28,13 @@ class ChatbotApp:
 
     def setup_chat_services(
         self, model_name="gpt-4o", temperature=1.0
-    ) -> tuple[ChatAPIService, ResponseHandler]:
+    ) -> tuple[ChatAPIService, BaseResponseHandler]:
         chat_api_service = ChatAPIService(self.api_key, model_name, temperature)
-        response_handler = ResponseHandler()
+        # Dependency Injection for response handler with default TaskExecutorStrategy
+        dependencies_container = DependenciesContainer(
+            web_browser=self.web_browser, tools_loader=self.tools_loader
+        )
+        response_handler = BaseResponseHandler(dependencies_container)
         return chat_api_service, response_handler
 
     def initialize_new_message(self) -> list[dict[str, str]]:
@@ -50,20 +53,52 @@ class ChatbotApp:
         return response["choices"][0]["message"]["content"]
 
     async def run(self) -> None:
+
+        # Launch web browser
+        await self.web_browser.launch()
+        # Create dependencies injector container for browser and pass it to handle_response
+        # dependencies_container = DependenciesContainer(web_browser=self.web_browser)
+
         while True:
-            messages = self.initialize_new_message()
-            user_input = input("User: ")
-            if self.is_quit_command(user_input):
-                print("Goodbye!")
-                break
-            self.add_user_message(messages, user_input)
+            messages = self.get_user_question()
+
+            # Function calls (tools) sent to the API
             response = self.chat_api_service.execute_api_call(
                 messages, self.tools_loader.tools
             )
-            self.response_handler.handle_response(response)
+
+            # Handle the response using the refactored response handler
+            await self.response_handler.handle_response(response)
+
+            # Handle chat history
             assistant_response = self.extract_assistant_response(response)
             logger.info(assistant_response)
-            # self.add_assistant_message(messages, assistant_response)
+
+    def get_user_question(self):
+        messages = self.initialize_new_message()
+
+        user_input = input("User: ")
+
+        self.add_user_message(messages, user_input)
+        return messages
+
+
+class DependenciesContainer:
+    def __init__(self, **dependencies):
+        self.dependencies = dependencies
+
+    def get(self, key, default=None):
+        """Retrieve a dependency by key."""
+        return self.dependencies.get(key, default)
+
+    def set(self, key, value):
+        """Set a dependency."""
+        self.dependencies[key] = value
+
+    def remove(self, key):
+        """Remove a dependency."""
+        if key in self.dependencies:
+            del self.dependencies[key]
 
 
 async def main() -> None:

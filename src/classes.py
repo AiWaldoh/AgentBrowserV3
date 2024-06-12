@@ -138,12 +138,6 @@ class BaseResponseHandler:
         return self._conversation_history
 
 
-# Usage example (this part should be run in an appropriate async environment)
-# dependencies_container = ...  # initialize your dependencies
-# response_handler = BaseResponseHandler(dependencies_container)
-# await response_handler.handle_response(response_from_api)
-
-
 class ToolsLoader:
     def __init__(self, file_path):
         self.file_path = file_path
@@ -176,7 +170,7 @@ class WebBrowser:
         self.browser = None
         self.page = None
 
-    async def launch(self, headless=True):
+    async def launch(self, headless=False):
         playwright = await async_playwright().start()
         self.browser = await playwright.chromium.launch(headless=headless)
 
@@ -224,10 +218,9 @@ class WebBrowser:
         self.page = await self.browser.new_page()
         try:
             await self.page.goto(url, timeout=timeout)
+            print(f"Navigated to {url}")
         except PlaywrightTimeoutError:
             raise TimeoutError(f"Timed out waiting for navigation to '{url}'.")
-
-        print(f"Page loaded: {url}")
 
     async def click_element(self, selector, timeout=5000):
         try:
@@ -259,11 +252,6 @@ class WebBrowser:
 
     async def find_elements(self, selector: str) -> List[ElementHandle]:
         return await self.page.query_selector_all(selector)
-
-    async def close(self):
-        await self.context.close()
-        await self.browser.close()
-        await self.playwright.stop()
 
     async def close(self):
         await self.browser.close()

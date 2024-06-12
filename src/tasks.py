@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 import json
 from typing import Dict, Any
+import os
+from datetime import datetime
 
 
 class AITaskRegistry:
@@ -39,6 +41,28 @@ class Task(ABC):
         pass
 
 
+class ScreenshotUtils:
+    @staticmethod
+    def generate_screenshot_path(folder_name: str = "screenshots") -> str:
+        os.makedirs(folder_name, exist_ok=True)
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        file_name = f"{folder_name}/screenshot_{timestamp}.png"
+        return file_name
+
+
+class TakeScreenshotTask(Task):
+    async def execute(self, arguments: Dict[str, Any], dependencies_container) -> str:
+        browser = dependencies_container.get("web_browser")
+
+        if browser:
+            file_name = ScreenshotUtils.generate_screenshot_path()
+            await browser.take_screenshot(file_name)
+            print(f"Screenshot captured and saved as: {file_name}")
+            return file_name
+        else:
+            raise ValueError("Web browser dependency is missing")
+
+
 class GoToPageTask(Task):
     async def execute(self, arguments, dependencies_container):
         browser = dependencies_container.get("web_browser")
@@ -48,6 +72,10 @@ class GoToPageTask(Task):
             forms = await FormUtils.get_forms(browser)
             parsed_forms = FormParser.parse_forms(forms)
             formatted_response = CLIResponseFormatter().format(parsed_forms)
+            file_name = ScreenshotUtils.generate_screenshot_path()
+            await browser.take_screenshot(file_name)
+            print(f"Screenshot captured and saved as: {file_name}")
+
             print(formatted_response)
 
 

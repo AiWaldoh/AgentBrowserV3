@@ -8,9 +8,9 @@ class MessageHandler:
 
     async def handle(self, message, dependencies_container):
         if self._can_handle(message):
-            await self._handle(message, dependencies_container)
+            return await self._handle(message, dependencies_container)
         elif self._successor:
-            await self._successor.handle(message, dependencies_container)
+            return await self._successor.handle(message, dependencies_container)
 
     def _can_handle(self, message):
         raise NotImplementedError
@@ -24,13 +24,15 @@ class ToolCallMessageHandler(MessageHandler):
         return "tool_calls" in message
 
     async def _handle(self, message, dependencies_container):
+        results = []
         for tool_call in message["tool_calls"]:
             task_name = tool_call["function"]["name"]
             arguments = tool_call["function"]["arguments"]
             result = await TaskExecutor.execute_task(
                 task_name, arguments, dependencies_container
             )
-            print(f"Task result: {result}")
+            results.append(result)  # Collect results
+        return results
 
 
 class ContentMessageHandler(MessageHandler):
@@ -80,7 +82,10 @@ class BaseResponseHandler:
         if "choices" in response and response["choices"]:
             choice = response["choices"][0]
             if "message" in choice:
-                await self.chain.handle(choice["message"], self._dependencies_container)
+                results = await self.chain.handle(
+                    choice["message"], self._dependencies_container
+                )
+                return results
             else:
                 print(f"No message found in the response.")
         else:

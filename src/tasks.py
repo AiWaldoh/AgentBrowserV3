@@ -171,6 +171,9 @@ class MetadataManager:
     async def extract_all(self, browser: "WebBrowser") -> Dict[str, Any]:
         metadata = {}
         for extractor in self.extractors:
+            print(
+                "Extracting metadata using extractor: " + extractor.__class__.__name__
+            )
             metadata.update(await extractor.extract(browser))
         return metadata
 
@@ -198,30 +201,17 @@ class GoToPageTask(Task):
             await browser.navigate_to(arguments["url"])
             print("Page loaded successfully.")
             metadata = await self.metadata_manager.extract_all(browser)
+            print("Metadata extracted successfully.")
             formatted_response = CLIResponseFormatter().format(metadata)
-            print(formatted_response)
+            print("Response formatted successfully.")
+            if formatted_response:
+                pass
+                # print(formatted_response)
+            else:
+                print("No metadata found.")
             return metadata
         else:
             raise ValueError("Web browser dependency is missing")
-
-
-# class GoToPageTask(Task):
-#     async def execute(self, arguments, dependencies_container):
-#         browser = dependencies_container.get("web_browser")
-#         if browser:
-#             await browser.navigate_to(arguments["url"])
-#             print("Page loaded successfully.")
-
-#             # manipulate page
-#             page = browser.page
-#             forms = await FormUtils.get_forms(page)
-#             parsed_forms = FormParser.parse_forms(forms)
-#             formatted_response = CLIResponseFormatter().format(parsed_forms)
-#             # file_name = ScreenshotUtils.generate_screenshot_path()
-#             # await browser.take_screenshot(file_name)
-#             # print(f"Screenshot captured and saved as: {file_name}")
-
-#             print(formatted_response)
 
 
 class FormElementHandler(ABC):
@@ -302,6 +292,7 @@ class FormUtils:
     async def get_forms(browser):
         forms = []
         page = browser.page
+        await page.wait_for_selector("form", state="hidden")
         elements = await page.query_selector_all("form")
         for element in elements:
             form_data = {
@@ -321,6 +312,13 @@ class FormUtils:
             forms.append(form_data)
 
         return forms
+
+
+class JSONResponseFormatter:
+    def format(self, metadata: Dict[str, Any]) -> str:
+        import json
+
+        return json.dumps(metadata, indent=2)
 
 
 class FormParser:
@@ -386,8 +384,20 @@ class CLIResponseFormatter:
         return "\033[94m" + response + "\033[0m"
 
 
-class JSONResponseFormatter:
-    def format(self, metadata: Dict[str, Any]) -> str:
-        import json
+# class GoToPageTask(Task):
+#     async def execute(self, arguments, dependencies_container):
+#         browser = dependencies_container.get("web_browser")
+#         if browser:
+#             await browser.navigate_to(arguments["url"])
+#             print("Page loaded successfully.")
 
-        return json.dumps(metadata, indent=2)
+#             # manipulate page
+#             page = browser.page
+#             forms = await FormUtils.get_forms(page)
+#             parsed_forms = FormParser.parse_forms(forms)
+#             formatted_response = CLIResponseFormatter().format(parsed_forms)
+#             # file_name = ScreenshotUtils.generate_screenshot_path()
+#             # await browser.take_screenshot(file_name)
+#             # print(f"Screenshot captured and saved as: {file_name}")
+
+#             print(formatted_response)

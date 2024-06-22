@@ -6,12 +6,12 @@ from classes import ToolsLoader, BaseResponseHandler
 from web_browser import WebBrowser
 from http_api import ChatAPIService
 from tasks import DependenciesContainer
-
-# nltk.download("punkt")
-
-import os
+import json
 import time
 from colorama import init, Fore, Style
+from agentThree import FormParsingAgent
+
+# nltk.download("punkt")
 
 
 def print_welcome_message():
@@ -59,7 +59,6 @@ def print_welcome_message():
     print("\n")
 
 
-# Example usage
 print_welcome_message()
 
 
@@ -107,28 +106,6 @@ class ChatbotApp:
     def extract_assistant_response(self, response) -> str:
         return response["choices"][0]["message"]["content"]
 
-    async def run(self) -> None:
-
-        # Launch web browser
-        await self.web_browser.launch()
-        # Create dependencies injector container for browser and pass it to handle_response
-        # dependencies_container = DependenciesContainer(web_browser=self.web_browser)
-
-        while True:
-            messages = self.get_user_question()
-
-            # Function calls (tools) sent to the API
-            response = self.chat_api_service.execute_api_call(
-                messages, self.tools_loader.tools
-            )
-
-            # Handle the response using the refactored response handler
-            await self.response_handler.handle_response(response)
-
-            # Handle chat history
-            assistant_response = self.extract_assistant_response(response)
-            logger.info(assistant_response)
-
     def get_user_question(self):
         messages = self.initialize_new_message()
 
@@ -136,6 +113,47 @@ class ChatbotApp:
 
         self.add_user_message(messages, user_input)
         return messages
+
+    async def process_results_with_agent(self, prompt, response):
+        print("Processing results with AI agent...")
+
+        agent = FormParsingAgent(self.chat_api_service)
+        agent_response = await agent.determine_relevant_form_selectors(response, prompt)
+        # logger.info(agent_response)
+        # print(agent_response)
+        # with open("res.json", "w") as file:
+        #     json.dump(results, file, indent=4)
+        # Placeholder method for processing results with AI agent
+        # This should be replaced with the actual implementationresponse
+        return "OK"
+
+    async def run(self) -> None:
+        running = True
+        # Launch web browser
+        await self.web_browser.launch()
+        # Create dependencies injector container for browser and pass it to handle_response
+        # dependencies_container = DependenciesContainer(web_browser=self.web_browser)
+
+        while running:
+            user_message = self.get_user_question()
+
+            api_response = self.chat_api_service.execute_api_call(
+                user_message, tools=self.tools_loader.tools
+            )
+
+            result = await self.response_handler.handle_response(api_response)
+            if result:
+                # Process results further or send to AI agent
+                # you need to put the agent elsewhere, since it needs to ask a follow up question
+                # I usually test with goto, and the agent I say I want to buy a plane ticket. So do something to transition in between
+                # if its not a function call, maybe its an agent question?
+                print("Sending results to AI agent...")
+                agent_response = await self.process_results_with_agent(
+                    user_message, result
+                )
+            # Handle chat history
+            assistant_response = self.extract_assistant_response(api_response)
+            logger.info(assistant_response)
 
 
 async def main() -> None:

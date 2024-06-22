@@ -1,0 +1,496 @@
+[
+    {
+        "forms": [
+            {
+                "id": "hidden-login-form",
+                "name": null,
+                "action": "/login",
+                "method": "post",
+                "elements": [
+                    {
+                        "type": "text",
+                        "name": "username",
+                        "id": "signin_username",
+                        "class": null,
+                        "placeholder": null,
+                        "label": null
+                    },
+                    {
+                        "type": "password",
+                        "name": "password",
+                        "id": "signin_password",
+                        "class": null,
+                        "placeholder": null,
+                        "label": null
+                    },
+                    {
+                        "type": "hidden",
+                        "name": "redirect",
+                        "id": null,
+                        "class": null,
+                        "placeholder": null,
+                        "label": null
+                    },
+                    {
+                        "type": "submit",
+                        "name": null,
+                        "id": "signin-button",
+                        "class": null,
+                        "placeholder": null,
+                        "label": null
+                    }
+                ]
+            }
+        ],
+        "h1": [
+            {
+                "id": null,
+                "class": null,
+                "inner_text": "GPT-4 Vision Keeps adding JSON code block syntax"
+            }
+        ],
+        "h2": [],
+        "links": [
+            {
+                "href": "#main-container",
+                "inner_text": "Skip to main content"
+            },
+            {
+                "href": "/",
+                "inner_text": ""
+            },
+            {
+                "href": "https://platform.openai.com/overview",
+                "inner_text": "Documentation"
+            },
+            {
+                "href": "https://platform.openai.com/docs/api-reference",
+                "inner_text": "API reference"
+            },
+            {
+                "href": "/latest",
+                "inner_text": "Topics"
+            },
+            {
+                "href": "https://platform.openai.com/overview",
+                "inner_text": "Documentation"
+            },
+            {
+                "href": "https://platform.openai.com/docs/api-reference",
+                "inner_text": "API reference"
+            },
+            {
+                "href": "https://help.openai.com",
+                "inner_text": "Help center"
+            },
+            {
+                "href": "/c/announcements/6",
+                "inner_text": "Announcements"
+            },
+            {
+                "href": "/c/api/7",
+                "inner_text": "API"
+            },
+            {
+                "href": "/c/prompting/8",
+                "inner_text": "Prompting"
+            },
+            {
+                "href": "/c/documentation/14",
+                "inner_text": "Documentation"
+            },
+            {
+                "href": "/c/gpts-builders/chat-plugins/20",
+                "inner_text": "Plugins / Actions builders"
+            },
+            {
+                "href": "/categories",
+                "inner_text": "All categories"
+            },
+            {
+                "href": "/tag/chatgpt",
+                "inner_text": "chatgpt"
+            },
+            {
+                "href": "/tag/gpt-4",
+                "inner_text": "gpt-4"
+            },
+            {
+                "href": "/tag/api",
+                "inner_text": "api"
+            },
+            {
+                "href": "/tag/lost-user",
+                "inner_text": "lost-user"
+            },
+            {
+                "href": "/tag/plugin-development",
+                "inner_text": "plugin-development"
+            },
+            {
+                "href": "/tags",
+                "inner_text": "All tags"
+            },
+            {
+                "href": "https://help.openai.com/en/",
+                "inner_text": "Help Center"
+            },
+            {
+                "href": "/t/gpt-4-vision-keeps-adding-json-code-block-syntax/657960",
+                "inner_text": "GPT-4 Vision Keeps adding JSON code block syntax"
+            },
+            {
+                "href": "/c/api/7",
+                "inner_text": "API"
+            },
+            {
+                "href": "/tag/gpt-4",
+                "inner_text": "gpt-4"
+            },
+            {
+                "href": "/tag/gpt-4-vision",
+                "inner_text": "gpt-4-vision"
+            },
+            {
+                "href": "",
+                "inner_text": "\n      select all\n    "
+            },
+            {
+                "href": "",
+                "inner_text": "\n    cancel selecting\n  "
+            },
+            {
+                "href": null,
+                "inner_text": "Feb 27"
+            },
+            {
+                "href": null,
+                "inner_text": "Feb 27"
+            },
+            {
+                "href": "/u/georg-san",
+                "inner_text": ""
+            },
+            {
+                "href": "/u/georg-san",
+                "inner_text": "georg-san"
+            },
+            {
+                "href": "/t/gpt-4-vision-keeps-adding-json-code-block-syntax/657960",
+                "inner_text": "Feb 27"
+            },
+            {
+                "href": null,
+                "inner_text": ""
+            },
+            {
+                "href": "/t/gpt-4-vision-keeps-adding-json-code-block-syntax/657960/4",
+                "inner_text": "last reply\n Feb 27"
+            },
+            {
+                "href": null,
+                "inner_text": ""
+            },
+            {
+                "href": "/u/georg-san",
+                "inner_text": "2"
+            },
+            {
+                "href": "/u/Diet",
+                "inner_text": "2"
+            },
+            {
+                "href": "/u/Diet",
+                "inner_text": ""
+            },
+            {
+                "href": "/u/Diet",
+                "inner_text": "Diet"
+            },
+            {
+                "href": "/t/gpt-4-vision-keeps-adding-json-code-block-syntax/657960/2",
+                "inner_text": "Feb 27"
+            },
+            {
+                "href": "https://platform.openai.com/docs/api-reference/chat/create#chat-create-response_format",
+                "inner_text": "json mode 17"
+            },
+            {
+                "href": "/u/georg-san",
+                "inner_text": ""
+            },
+            {
+                "href": "/u/georg-san",
+                "inner_text": "georg-san"
+            },
+            {
+                "href": "/t/gpt-4-vision-keeps-adding-json-code-block-syntax/657960/3",
+                "inner_text": "Feb 27"
+            },
+            {
+                "href": "/u/diet",
+                "inner_text": "@Diet"
+            },
+            {
+                "href": "/u/Diet",
+                "inner_text": ""
+            },
+            {
+                "href": "/u/Diet",
+                "inner_text": "Diet"
+            },
+            {
+                "href": "/t/gpt-4-vision-keeps-adding-json-code-block-syntax/657960/4",
+                "inner_text": "Feb 27"
+            },
+            {
+                "href": "/t/gpt-4-vision-keeps-adding-json-code-block-syntax/657960/3",
+                "inner_text": ""
+            },
+            {
+                "href": "/t/gpt-4o-producing-bad-linebreaks-and-invalid-json/780850",
+                "inner_text": "GPT-4o producing bad linebreaks and invalid JSON"
+            },
+            {
+                "href": "/c/api/7",
+                "inner_text": "API"
+            },
+            {
+                "href": "/tag/api",
+                "inner_text": "api"
+            },
+            {
+                "href": "/tag/gpt-4o",
+                "inner_text": "gpt-4o"
+            },
+            {
+                "href": "/tag/json",
+                "inner_text": "json"
+            },
+            {
+                "href": "/t/gpt-4o-producing-bad-linebreaks-and-invalid-json/780850/12",
+                "inner_text": "4d"
+            },
+            {
+                "href": "/t/valid-json-every-time/29271",
+                "inner_text": "Valid json every time?"
+            },
+            {
+                "href": "/c/prompting/8",
+                "inner_text": "Prompting"
+            },
+            {
+                "href": "/t/valid-json-every-time/29271/19",
+                "inner_text": "Mar 2023"
+            },
+            {
+                "href": "/t/gpt-4o-breaking-json-responses/749807",
+                "inner_text": "Gpt-4o breaking JSON responses"
+            },
+            {
+                "href": "/c/api/7",
+                "inner_text": "API"
+            },
+            {
+                "href": "/tag/gpt-4o",
+                "inner_text": "gpt-4o"
+            },
+            {
+                "href": "/t/gpt-4o-breaking-json-responses/749807/7",
+                "inner_text": "7d"
+            },
+            {
+                "href": "/t/gpt-4-in-json-mode-intermittently-returning-answer-twice/606104",
+                "inner_text": "GPT-4 in json mode intermittently returning answer twice"
+            },
+            {
+                "href": "/c/api/bugs/30",
+                "inner_text": "Bugs"
+            },
+            {
+                "href": "/tag/gpt-4",
+                "inner_text": "gpt-4"
+            },
+            {
+                "href": "/tag/api",
+                "inner_text": "api"
+            },
+            {
+                "href": "/tag/json-mode",
+                "inner_text": "json-mode"
+            },
+            {
+                "href": "/t/gpt-4-in-json-mode-intermittently-returning-answer-twice/606104/4",
+                "inner_text": "Mar 12"
+            },
+            {
+                "href": "/t/how-to-let-gpt-do-not-return-any-accompanying-text/324513",
+                "inner_text": "How to let GPT do not return any accompanying text?"
+            },
+            {
+                "href": "/c/prompting/8",
+                "inner_text": "Prompting"
+            },
+            {
+                "href": "/tag/chatgpt",
+                "inner_text": "chatgpt"
+            },
+            {
+                "href": "/tag/gpt-4",
+                "inner_text": "gpt-4"
+            },
+            {
+                "href": "/tag/gpt-35-turbo",
+                "inner_text": "gpt-35-turbo"
+            },
+            {
+                "href": "/t/how-to-let-gpt-do-not-return-any-accompanying-text/324513/12",
+                "inner_text": "Aug 2023"
+            },
+            {
+                "href": "https://openai.com/research/overview",
+                "inner_text": "Overview"
+            },
+            {
+                "href": "https://openai.com/research",
+                "inner_text": "Index"
+            },
+            {
+                "href": "https://openai.com/product",
+                "inner_text": "Overview"
+            },
+            {
+                "href": "https://openai.com/customer-stories",
+                "inner_text": "Customer stories"
+            },
+            {
+                "href": "https://openai.com/safety-standards",
+                "inner_text": "Safety standards"
+            },
+            {
+                "href": "https://openai.com/pricing",
+                "inner_text": "Pricing"
+            },
+            {
+                "href": "https://openai.com/safety",
+                "inner_text": "Overview"
+            },
+            {
+                "href": "https://openai.com/security",
+                "inner_text": "Security"
+            },
+            {
+                "href": "http://openai.com/form/report-illegal-content",
+                "inner_text": "Report illegal content"
+            },
+            {
+                "href": "https://help.openai.com",
+                "inner_text": "Support"
+            },
+            {
+                "href": "https://platform.openai.com/overview",
+                "inner_text": "Documentation"
+            },
+            {
+                "href": "https://status.openai.com",
+                "inner_text": "Service status"
+            },
+            {
+                "href": "https://github.com/openai/openai-cookbook",
+                "inner_text": "Examples"
+            },
+            {
+                "href": "https://openai.com/about",
+                "inner_text": "About"
+            },
+            {
+                "href": "https://openai.com/blog",
+                "inner_text": "Blog"
+            },
+            {
+                "href": "https://openai.com/careers",
+                "inner_text": "Careers"
+            },
+            {
+                "href": "https://openai.com/charter",
+                "inner_text": "Charter"
+            },
+            {
+                "href": "https://openai.com/policies",
+                "inner_text": "Terms & policies "
+            },
+            {
+                "href": "https://openai.com/policies/privacy-policy",
+                "inner_text": "Privacy policy "
+            },
+            {
+                "href": "https://openai.com/brand",
+                "inner_text": "Brand guidelines"
+            },
+            {
+                "href": "https://twitter.com/OpenAI",
+                "inner_text": ""
+            },
+            {
+                "href": "https://youtube.com/OpenAI",
+                "inner_text": ""
+            },
+            {
+                "href": "https://github.com/openai",
+                "inner_text": ""
+            },
+            {
+                "href": "https://www.linkedin.com/company/openai",
+                "inner_text": ""
+            }
+        ],
+        "title": "GPT-4 Vision Keeps adding JSON code block syntax - API - OpenAI Developer Forum",
+        "images": [
+            {
+                "src": "https://global.discourse-cdn.com/openai1/original/3X/3/7/37b0465af49ce945753b8555462012147b0fb27a.svg",
+                "alt": "OpenAI Developer Forum"
+            },
+            {
+                "src": "https://sea2.discourse-cdn.com/openai1/user_avatar/community.openai.com/georg-san/48/52279_2.png",
+                "alt": ""
+            },
+            {
+                "src": "https://sea2.discourse-cdn.com/openai1/user_avatar/community.openai.com/georg-san/24/52279_2.png",
+                "alt": ""
+            },
+            {
+                "src": "https://sea2.discourse-cdn.com/openai1/user_avatar/community.openai.com/diet/24/229305_2.png",
+                "alt": ""
+            },
+            {
+                "src": "https://sea2.discourse-cdn.com/openai1/user_avatar/community.openai.com/georg-san/48/52279_2.png",
+                "alt": ""
+            },
+            {
+                "src": "https://sea2.discourse-cdn.com/openai1/user_avatar/community.openai.com/diet/48/229305_2.png",
+                "alt": ""
+            },
+            {
+                "src": "https://sea2.discourse-cdn.com/openai1/user_avatar/community.openai.com/diet/48/229305_2.png",
+                "alt": ""
+            },
+            {
+                "src": "https://sea2.discourse-cdn.com/openai1/user_avatar/community.openai.com/georg-san/48/52279_2.png",
+                "alt": ""
+            },
+            {
+                "src": "https://sea2.discourse-cdn.com/openai1/user_avatar/community.openai.com/diet/48/229305_2.png",
+                "alt": ""
+            },
+            {
+                "src": "https://sea2.discourse-cdn.com/openai1/user_avatar/community.openai.com/georg-san/48/52279_2.png",
+                "alt": ""
+            },
+            {
+                "src": "https://emoji.discourse-cdn.com/twitter/confused.png?v=12",
+                "alt": ":confused:"
+            }
+        ],
+        "meta_description": "I have a GPT-4 Vision system message that includes: \n\nGeneral instructions\nSpecific instruction for the response: Always respond in valid JSON format and NEVER add a JSON code block syntax to your response\nA response exa&hellip;"
+    }
+]

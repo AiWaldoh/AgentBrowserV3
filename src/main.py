@@ -6,58 +6,9 @@ from classes import ToolsLoader, BaseResponseHandler
 from web_browser import WebBrowser
 from http_api import ChatAPIService
 from tasks import DependenciesContainer
-import json
-import time
-from colorama import init, Fore, Style
-from agentThree import FormParsingAgent
+from cli_init import print_welcome_message
 
 # nltk.download("punkt")
-
-
-def print_welcome_message():
-    init()  # Initialize colorama for color support
-
-    # Clear the console screen
-    os.system("cls" if os.name == "nt" else "clear")
-
-    # Define the ASCII art
-    ascii_art = r"""
-    {cyan}╔════════════════════════════════════════════════════════════════════════════════╗
-    ║                                                                                ║
-    ║        {green}██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗{cyan}          ║
-    ║        {green}██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝{cyan}          ║
-    ║        {green}██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗{cyan}            ║
-    ║        {green}██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝{cyan}            ║
-    ║        {green}╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗{cyan}          ║
-    ║         {green}╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝{cyan}          ║
-    ║                                                                                ║
-    ║                  {yellow}★ Your Ultimate CLI Browser Experience ★{cyan}                      ║
-    ║                                                                                ║
-    ║  {magenta}Get ready to embark on a captivating journey through the realms of the web!{cyan}   ║
-    ║    {magenta}Prepare to witness the fusion of power, convenience, and innovation.{cyan}        ║
-    ║        {magenta}Brace yourself for an unparalleled browsing adventure like{cyan}              ║
-    ║                        {magenta}no other, right in your CLI!{cyan}                            ║
-    ║                                                                                ║
-    ╚════════════════════════════════════════════════════════════════════════════════╝
-    """
-
-    # Print the ASCII art with colors
-    print(
-        ascii_art.format(
-            cyan=Fore.CYAN, green=Fore.GREEN, yellow=Fore.YELLOW, magenta=Fore.MAGENTA
-        )
-    )
-
-    # Print additional information with typewriter effect
-    typewriter_text = f"\n{Fore.CYAN}   Prepare to unleash the full potential of the web at your fingertips!{Style.RESET_ALL}"
-    for char in typewriter_text:
-        print(char, end="", flush=True)
-        time.sleep(0.05)
-
-    # Wait for a short pause before clearing the screen
-    time.sleep(2)
-    print("\n")
-
 
 print_welcome_message()
 
@@ -114,22 +65,8 @@ class ChatbotApp:
         self.add_user_message(messages, user_input)
         return messages
 
-    async def process_results_with_agent(self, prompt, response):
-        print("Processing results with AI agent...")
-
-        agent = FormParsingAgent(self.chat_api_service)
-        agent_response = await agent.determine_relevant_form_selectors(response, prompt)
-        # logger.info(agent_response)
-        # print(agent_response)
-        # with open("res.json", "w") as file:
-        #     json.dump(results, file, indent=4)
-        # Placeholder method for processing results with AI agent
-        # This should be replaced with the actual implementationresponse
-        return "OK"
-
     async def run(self) -> None:
         running = True
-        # Launch web browser
         await self.web_browser.launch()
         # Create dependencies injector container for browser and pass it to handle_response
         # dependencies_container = DependenciesContainer(web_browser=self.web_browser)
@@ -142,16 +79,7 @@ class ChatbotApp:
             )
 
             await self.response_handler.handle_response(api_response)
-            # if result:
-            #     # Process results further or send to AI agent
-            #     # you need to put the agent elsewhere, since it needs to ask a follow up question
-            #     # I usually test with goto, and the agent I say I want to buy a plane ticket. So do something to transition in between
-            #     # if its not a function call, maybe its an agent question?
-            #     print("Sending results to AI agent...")
-            #     agent_response = await self.process_results_with_agent(
-            #         user_message, result
-            #     )
-            # Handle chat history
+
             assistant_response = self.extract_assistant_response(api_response)
             logger.info(assistant_response)
 

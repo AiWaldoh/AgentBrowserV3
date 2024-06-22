@@ -1,5 +1,6 @@
 import yaml
-from tasks import TaskExecutor, AITaskRegistry, GoToPageTask, InteractWithFormTask
+from tasks import GoToPageTask, InteractWithFormTask
+from utils import TaskExecutor, AITaskRegistry
 
 
 class MessageHandler:

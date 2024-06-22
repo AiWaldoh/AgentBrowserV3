@@ -246,6 +246,9 @@ class InteractWithFormTask(Task):
 
 from typing import List, Dict, Any
 
+import asyncio
+from typing import List, Dict, Any
+
 
 class FormInteractor:
     def __init__(self, browser):
@@ -253,11 +256,41 @@ class FormInteractor:
 
     async def fill_form_fields(self, field_mappings: List[Dict[str, Any]]):
         print(f"Filling form fields with {field_mappings}")
+        submit_selector = None
         for mapping in field_mappings:
             selector = mapping.get("field_selector")
             value = mapping.get("value")
+            reason = mapping.get("reason")
+
+            # Identify the submit button selector
+            if reason and "submit" in reason.lower():
+                submit_selector = selector
+                continue
+
             if selector and value is not None:
                 await self._fill_field(selector, value)
+
+        # Submit the form if the submit button selector is found
+        if submit_selector:
+            await asyncio.sleep(1)  # Optional delay
+            await self.submit_form(submit_selector)
+        else:
+            print("No submit button selector found in the API response")
+
+    async def submit_form(self, submit_button_selector):
+        try:
+            await asyncio.sleep(1)  # Optional delay
+            submit_button = await self.browser.page.query_selector(
+                submit_button_selector
+            )
+            if submit_button:
+                await submit_button.click()
+                print("Form submitted successfully by clicking the submit button.")
+            else:
+                print(f"Submit button not found with selector {submit_button_selector}")
+
+        except Exception as e:
+            print(f"Error submitting form: {str(e)}")
 
     async def _fill_field(self, selector, value):
         try:
@@ -272,11 +305,13 @@ class FormInteractor:
                 input_type = await element.get_attribute("type")
                 if input_type in ["checkbox", "radio"]:
                     if value:
-                        await element.set_checked(True)
+                        await self._force_click(selector)
                         print(f"Set {selector} to checked")
                     else:
-                        await element.set_checked(False)
-                        print(f"Set {selector} to unchecked")
+                        # Only uncheck if it's a checkbox
+                        if input_type == "checkbox":
+                            await self._force_click(selector)
+                            print(f"Set {selector} to unchecked")
                 else:
                     await element.fill(value)
                     print(f"Filled field {selector} with value: {value}")
@@ -296,6 +331,46 @@ class FormInteractor:
             print(f"Error filling field {selector}: {str(e)}")
             raise
 
+    async def _force_click(self, selector):
+        """Force click an element using JavaScript."""
+        try:
+            await self.browser.page.evaluate(
+                f"""
+            (selector) => {{
+                const element = document.querySelector(selector);
+                if (element) {{
+                    const rect = element.getBoundingClientRect();
+                    element.dispatchEvent(new MouseEvent('mousedown', {{
+                        view: window,
+                        bubbles: true,
+                        cancelable: true,
+                        clientX: rect.x + rect.width / 2,
+                        clientY: rect.y + rect.height / 2
+                    }}));
+                    element.dispatchEvent(new MouseEvent('mouseup', {{
+                        view: window,
+                        bubbles: true,
+                        cancelable: true,
+                        clientX: rect.x + rect.width / 2,
+                        clientY: rect.y + rect.height / 2
+                    }}));
+                    element.dispatchEvent(new MouseEvent('click', {{
+                        view: window,
+                        bubbles: true,
+                        cancelable: true,
+                        clientX: rect.x + rect.width / 2,
+                        clientY: rect.y + rect.height / 2
+                    }}));
+                }}
+            }}
+            """,
+                selector,
+            )
+            print(f"Forced click on {selector}")
+        except Exception as e:
+            print(f"Error forcing click on {selector}: {str(e)}")
+            raise
+
 
 class FormParsingAgent:
     def __init__(self, chat_api_service):
@@ -304,17 +379,18 @@ class FormParsingAgent:
     async def determine_relevant_form_fields(self, form_data, user_prompt):
         PROMPT_TEMPLATE = f"""
         Given the following form data and user prompt, determine which fields are relevant and provide the CSS selectors for accessing them. Only return 1 selector per field.
-
+        Don't forget that checkboxes and radio buttons have different values that need to be considered.
         Form data: {form_data}
         User prompt: {user_prompt}
 
-        Answer in valid JSON format (no comments or extra whitespace) as follows:
+        Answer in valid JSON format ONLY (no comments or extra whitespace) as follows:
         [
             {{
                 "field_selector": "<field selector>",
                 "value": "<value>",
                 "reason": "<reason>"
             }},
+        ]
 
         If no form data corresponds to the user prompt, return an empty list.
             ...
@@ -397,7 +473,7 @@ class InputFieldHandler(FormElementHandler):
 
     async def get_associated_label(self, element):
         label_element = await element.query_selector(
-            "xpath=preceding-sibling::label[1]"
+            "xpath=ancestor::label | following-sibling::label | preceding-sibling::label"
         )
         if label_element:
             return await label_element.inner_text()

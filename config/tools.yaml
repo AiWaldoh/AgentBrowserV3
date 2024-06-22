@@ -14,12 +14,12 @@ tools:
   - type: function
     function:
       name: interact_with_form
-      description: Interacts with a form on the current page, filling in specified fields based on user input
+      description: Interacts with a form on the current page, filling in specified fields based on user input or submitting data
       parameters:
         type: object
         properties:
           user_prompt:
             type: string
-            description: The user's input describing what to fill in the form
+            description: The user's input describing what to fill in the form or submit
         required:
           - user_prompt

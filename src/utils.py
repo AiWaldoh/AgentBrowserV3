@@ -4,10 +4,11 @@ from abc import ABC, abstractmethod
 import json
 from typing import Dict, Any
 from web_browser import WebBrowser
-import asyncio
 from http_api_async import ChatAPIService
 from typing import List, Dict, Any
 from extractors import MetadataExtractor
+from typing import List, Dict, Any
+import asyncio
 
 
 class DependenciesContainer:
@@ -86,9 +87,85 @@ class MetadataManager:
         return metadata
 
 
-class FormInteractor:
+class FieldInteractor:
     def __init__(self, browser):
         self.browser = browser
+
+    async def fill_text_input(self, selector, value):
+        element = await self._get_element(selector)
+        await element.fill(value)
+        print(f"Filled input {selector} with value {value}")
+
+    async def fill_text_area(self, selector, value):
+        element = await self._get_element(selector)
+        await element.fill(value)
+        print(f"Filled textarea {selector} with value {value}")
+
+    async def select_option(self, selector, value):
+        element = await self._get_element(selector)
+        await element.select_option(value)
+        print(f"Selected option {value} in {selector}")
+
+    async def fill_checkbox_or_radio(self, selector, value):
+        if value:
+            await self._force_click(selector)
+            print(f"Checked {selector}")
+        else:
+            element = await self._get_element(selector)
+            input_type = await element.get_attribute("type")
+            if input_type == "checkbox":
+                await self._force_click(selector)
+                print(f"Unchecked {selector}")
+
+    async def _force_click(self, selector):
+        try:
+            await self.browser.page.evaluate(
+                f"""
+                (selector) => {{
+                    const element = document.querySelector(selector);
+                    if (element) {{
+                        element.click();
+                    }}
+                }}
+                """,
+                selector,
+            )
+            print(f"Forced click on {selector}")
+        except Exception as e:
+            print(f"Error forcing click on {selector}: {str(e)}")
+            raise
+
+    async def _get_element(self, selector):
+        element = await self.browser.page.query_selector(selector)
+        if element is None:
+            raise ValueError(f"Element with selector {selector} not found")
+        return element
+
+
+class SubmitInteractor:
+    def __init__(self, browser):
+        self.browser = browser
+
+    async def submit_form(self, submit_button_selector):
+        try:
+            await asyncio.sleep(1)  # Optional delay
+            submit_button = await self.browser.page.query_selector(
+                submit_button_selector
+            )
+            if submit_button:
+                await submit_button.click()
+                print("Form submitted successfully by clicking the submit button.")
+            else:
+                print(f"Submit button not found with selector {submit_button_selector}")
+        except Exception as e:
+            print(f"Error submitting form: {str(e)}")
+            raise
+
+
+class FormInteractor:
+    def __init__(self, browser):
+        self.field_interactor = FieldInteractor(browser)
+        self.submit_interactor = SubmitInteractor(browser)
 
     async def fill_form_fields(self, field_mappings: List[Dict[str, Any]]):
         print(f"Filling form fields with {field_mappings}")
@@ -104,59 +181,29 @@ class FormInteractor:
                 continue
 
             if selector and value is not None:
-                await self._fill_field(selector, value)
+                await self.fill_field(selector, value)
 
         # Submit the form if the submit button selector is found
         if submit_selector:
-            await asyncio.sleep(1)  # Optional delay
-            await self.submit_form(submit_selector)
+            await self.submit_interactor.submit_form(submit_selector)
         else:
             print("No submit button selector found in the API response")
 
-    async def submit_form(self, submit_button_selector):
+    async def fill_field(self, selector, value):
         try:
-            await asyncio.sleep(1)  # Optional delay
-            submit_button = await self.browser.page.query_selector(
-                submit_button_selector
-            )
-            if submit_button:
-                await submit_button.click()
-                print("Form submitted successfully by clicking the submit button.")
-            else:
-                print(f"Submit button not found with selector {submit_button_selector}")
-
-        except Exception as e:
-            print(f"Error submitting form: {str(e)}")
-
-    async def _fill_field(self, selector, value):
-        try:
-            element = await self.browser.page.query_selector(selector)
-            if element is None:
-                print(f"Element with selector {selector} not found")
-                return
-
+            element = await self.field_interactor._get_element(selector)
             tag_name = await element.evaluate("(element) => element.tagName")
 
             if tag_name == "INPUT":
                 input_type = await element.get_attribute("type")
                 if input_type in ["checkbox", "radio"]:
-                    if value:
-                        await self._force_click(selector)
-                        print(f"Set {selector} to checked")
-                    else:
-                        # Only uncheck if it's a checkbox
-                        if input_type == "checkbox":
-                            await self._force_click(selector)
-                            print(f"Set {selector} to unchecked")
+                    await self.field_interactor.fill_checkbox_or_radio(selector, value)
                 else:
-                    await element.fill(value)
-                    print(f"Filled field {selector} with value: {value}")
+                    await self.field_interactor.fill_text_input(selector, value)
             elif tag_name == "TEXTAREA":
-                await element.fill(value)
-                print(f"Filled textarea {selector} with value: {value}")
+                await self.field_interactor.fill_text_area(selector, value)
             elif tag_name == "SELECT":
-                await element.select_option(value)
-                print(f"Selected option {value} in {selector}")
+                await self.field_interactor.select_option(selector, value)
             else:
                 print(f"Unhandled form element {tag_name} for selector {selector}")
 
@@ -165,44 +212,4 @@ class FormInteractor:
             )  # Allow time for any client-side validation or async operations
         except Exception as e:
             print(f"Error filling field {selector}: {str(e)}")
-            raise
-
-    async def _force_click(self, selector):
-        """Force click an element using JavaScript."""
-        try:
-            await self.browser.page.evaluate(
-                f"""
-            (selector) => {{
-                const element = document.querySelector(selector);
-                if (element) {{
-                    const rect = element.getBoundingClientRect();
-                    element.dispatchEvent(new MouseEvent('mousedown', {{
-                        view: window,
-                        bubbles: true,
-                        cancelable: true,
-                        clientX: rect.x + rect.width / 2,
-                        clientY: rect.y + rect.height / 2
-                    }}));
-                    element.dispatchEvent(new MouseEvent('mouseup', {{
-                        view: window,
-                        bubbles: true,
-                        cancelable: true,
-                        clientX: rect.x + rect.width / 2,
-                        clientY: rect.y + rect.height / 2
-                    }}));
-                    element.dispatchEvent(new MouseEvent('click', {{
-                        view: window,
-                        bubbles: true,
-                        cancelable: true,
-                        clientX: rect.x + rect.width / 2,
-                        clientY: rect.y + rect.height / 2
-                    }}));
-                }}
-            }}
-            """,
-                selector,
-            )
-            print(f"Forced click on {selector}")
-        except Exception as e:
-            print(f"Error forcing click on {selector}: {str(e)}")
             raise

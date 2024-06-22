@@ -1,0 +1,11 @@
+{'id': 'gen-4pRxOu4ENFSELG1Bg0qnLzpnD8rD', 'model': 'openai/gpt-4o', 'object': 'chat.completion', 'created': 1719070094, 'choices': [
+        {'index': 0, 'message': {'role': 'assistant', 'content': '```json\n[\n    {\n        "fieldSelector": ".pencraft._emailInput_10kn4_23._emailInputOnWelcomePage_10kn4_44",\n        "value": "john@gmail.com",\n        "reason": "The email field with the class \'pencraft _emailInput_10kn4_23 _emailInputOnWelcomePage_10kn4_44\' matches the user prompt to fill in the email field."\n
+                    },\n    {\n        "fieldSelector": ".pencraft._emailInput_10kn4_23._emailInputExpectTruncation_10kn4_53",\n        "value": "john@gmail.com",\n        "reason": "The email field with the class \'pencraft _emailInput_10kn4_23 _emailInputExpectTruncation_10kn4_53\' matches the user prompt to fill in the email field."\n
+                    },\n    {\n        "fieldSelector": ".pencraft._emailInput_10kn4_23",\n        "value": "john@gmail.com",\n        "reason": "The email field with the class \'pencraft _emailInput_10kn4_23\' matches the user prompt to fill in the email field."\n
+                    }\n
+                ]\n```'
+            }, 'finish_reason': 'stop'
+        }
+    ], 'system_fingerprint': 'fp_5e6c71d4a8', 'usage': {'prompt_tokens': 1345, 'completion_tokens': 260, 'total_tokens': 1605
+    }
+}

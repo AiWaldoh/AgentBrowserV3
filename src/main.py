@@ -141,16 +141,16 @@ class ChatbotApp:
                 user_message, tools=self.tools_loader.tools
             )
 
-            result = await self.response_handler.handle_response(api_response)
-            if result:
-                # Process results further or send to AI agent
-                # you need to put the agent elsewhere, since it needs to ask a follow up question
-                # I usually test with goto, and the agent I say I want to buy a plane ticket. So do something to transition in between
-                # if its not a function call, maybe its an agent question?
-                print("Sending results to AI agent...")
-                agent_response = await self.process_results_with_agent(
-                    user_message, result
-                )
+            await self.response_handler.handle_response(api_response)
+            # if result:
+            #     # Process results further or send to AI agent
+            #     # you need to put the agent elsewhere, since it needs to ask a follow up question
+            #     # I usually test with goto, and the agent I say I want to buy a plane ticket. So do something to transition in between
+            #     # if its not a function call, maybe its an agent question?
+            #     print("Sending results to AI agent...")
+            #     agent_response = await self.process_results_with_agent(
+            #         user_message, result
+            #     )
             # Handle chat history
             assistant_response = self.extract_assistant_response(api_response)
             logger.info(assistant_response)

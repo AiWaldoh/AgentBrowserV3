@@ -4,6 +4,8 @@ from typing import Dict, Any
 import os
 from datetime import datetime
 from web_browser import WebBrowser
+import asyncio
+from http_api3 import ChatAPIService
 
 
 class DependenciesContainer:
@@ -178,7 +180,7 @@ class MetadataManager:
         return metadata
 
 
-class GoToPageTask(Task):
+class InteractWithFormTask(Task):
     def __init__(self):
         # Initialize MetadataManager with all the extractors you need
         self.metadata_manager = MetadataManager(
@@ -194,22 +196,184 @@ class GoToPageTask(Task):
         )
 
     async def execute(
+        self, arguments: Dict[str, Any], dependencies_container: DependenciesContainer
+    ) -> bool:
+        browser = dependencies_container.get("web_browser")
+        chat_api_service: ChatAPIService = ChatAPIService(
+            os.getenv("OPENAI_API_KEY")
+        )  # dependencies_container.get("chat_api_service")
+
+        if not browser:
+            print("Web browser dependency is missing")
+            return False
+
+        if not chat_api_service:
+            print("Chat API service dependency is missing")
+            return False
+        # await browser.navigate_to("https://account.proton.me/mail")
+        # Initialize the classes needed
+        metadata = await self.metadata_manager.extract_all(browser)
+        print("Metadata extracted successfully.")
+        form_interactor = FormInteractor(browser)
+        parsing_agent = FormParsingAgent(chat_api_service)
+
+        # figure out which form is relevant
+        # send fields in second query to AI with prompt and try to see if it works
+        # make it return a nice json response with fields it filled out and maybe a reason
+        # Extract arguments
+        user_prompt = arguments.get("user_prompt", "")
+        form_data = metadata["forms"]  # arguments.get("form_data", "")
+        print(form_data)
+        try:
+            # Determine the relevant form fields
+            field_mappings = await parsing_agent.determine_relevant_form_fields(
+                form_data, user_prompt
+            )
+            print("")
+            print(f"Field mappings: {field_mappings}")
+            # field mappings is an array, check if empty
+            if not field_mappings:
+                print("No relevant form fields found.")
+                return False
+            # Fill the form fields with determined mappings
+            await form_interactor.fill_form_fields(field_mappings)
+            print("Form fields filled successfully")
+            return True
+        except Exception as e:
+            print(f"Error interacting with form: {str(e)}")
+            return False
+
+
+from typing import List, Dict, Any
+
+
+class FormInteractor:
+    def __init__(self, browser):
+        self.browser = browser
+
+    async def fill_form_fields(self, field_mappings: List[Dict[str, Any]]):
+        print(f"Filling form fields with {field_mappings}")
+        for mapping in field_mappings:
+            selector = mapping.get("field_selector")
+            value = mapping.get("value")
+            if selector and value is not None:
+                await self._fill_field(selector, value)
+
+    async def _fill_field(self, selector, value):
+        try:
+            element = await self.browser.page.query_selector(selector)
+            if element is None:
+                print(f"Element with selector {selector} not found")
+                return
+
+            tag_name = await element.evaluate("(element) => element.tagName")
+
+            if tag_name == "INPUT":
+                input_type = await element.get_attribute("type")
+                if input_type in ["checkbox", "radio"]:
+                    if value:
+                        await element.set_checked(True)
+                        print(f"Set {selector} to checked")
+                    else:
+                        await element.set_checked(False)
+                        print(f"Set {selector} to unchecked")
+                else:
+                    await element.fill(value)
+                    print(f"Filled field {selector} with value: {value}")
+            elif tag_name == "TEXTAREA":
+                await element.fill(value)
+                print(f"Filled textarea {selector} with value: {value}")
+            elif tag_name == "SELECT":
+                await element.select_option(value)
+                print(f"Selected option {value} in {selector}")
+            else:
+                print(f"Unhandled form element {tag_name} for selector {selector}")
+
+            await asyncio.sleep(
+                0.5
+            )  # Allow time for any client-side validation or async operations
+        except Exception as e:
+            print(f"Error filling field {selector}: {str(e)}")
+            raise
+
+
+class FormParsingAgent:
+    def __init__(self, chat_api_service):
+        self.chat_api_service: ChatAPIService = chat_api_service
+
+    async def determine_relevant_form_fields(self, form_data, user_prompt):
+        PROMPT_TEMPLATE = f"""
+        Given the following form data and user prompt, determine which fields are relevant and provide the CSS selectors for accessing them. Only return 1 selector per field.
+
+        Form data: {form_data}
+        User prompt: {user_prompt}
+
+        Answer in valid JSON format (no comments or extra whitespace) as follows:
+        [
+            {{
+                "field_selector": "<field selector>",
+                "value": "<value>",
+                "reason": "<reason>"
+            }},
+
+        If no form data corresponds to the user prompt, return an empty list.
+            ...
+        """
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant who understands the structure of forms.",
+            },
+            {"role": "user", "content": PROMPT_TEMPLATE},
+        ]
+
+        try:
+            response = await self.chat_api_service.execute_api_call(
+                messages=messages, **{"temperature": 0.2}
+            )
+            print(f"Response from API: {response}")
+
+            if response and "choices" in response and len(response["choices"]) > 0:
+                try:
+                    field_mappings = json.loads(
+                        response["choices"][0]["message"]["content"]
+                    )
+                    return field_mappings
+                except json.JSONDecodeError as e:
+                    print(f"Error decoding JSON from API response: {e}")
+                    return []
+            else:
+                print("No choices returned from API.")
+                return []
+        except Exception as e:
+            print(f"Error determining relevant form fields: {str(e)}")
+            return []
+
+
+class GoToPageTask(Task):
+
+    async def execute(
         self, arguments: Dict[str, Any], dependencies_container: "DependenciesContainer"
     ) -> Dict[str, Any]:
         browser: WebBrowser = dependencies_container.get("web_browser")
         if browser:
             await browser.navigate_to(arguments["url"])
             print("Page loaded successfully.")
-            metadata = await self.metadata_manager.extract_all(browser)
-            print("Metadata extracted successfully.")
-            formatted_response = CLIResponseFormatter().format(metadata)
-            print("Response formatted successfully.")
-            if formatted_response:
-                pass
-                # print(formatted_response)
-            else:
-                print("No metadata found.")
-            return metadata
+            # take screenshot with url as name and timestamp appended
+            file_name = ScreenshotUtils.generate_screenshot_path()
+            await browser.take_screenshot(file_name)
+            print(f"Screenshot captured and saved as: {file_name}")
+            # put metadata in other class
+            # metadata = await self.metadata_manager.extract_all(browser)
+            # print("Metadata extracted successfully.")
+            # formatted_response = CLIResponseFormatter().format(metadata)
+            # print("Response formatted successfully.")
+            # if formatted_response:
+            #     pass
+            #     # print(formatted_response)
+            # else:
+            #     print("No metadata found.")
+            # return metadata
         else:
             raise ValueError("Web browser dependency is missing")
 
@@ -292,7 +456,7 @@ class FormUtils:
     async def get_forms(browser):
         forms = []
         page = browser.page
-        await page.wait_for_selector("form", state="hidden")
+        # await page.wait_for_selector("form", state="hidden")
         elements = await page.query_selector_all("form")
         for element in elements:
             form_data = {

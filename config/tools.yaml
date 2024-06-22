@@ -11,3 +11,15 @@ tools:
             description: The URL to navigate to.
         required:
           - url
+  - type: function
+    function:
+      name: interact_with_form
+      description: Interacts with a form on the current page, filling in specified fields based on user input
+      parameters:
+        type: object
+        properties:
+          user_prompt:
+            type: string
+            description: The user's input describing what to fill in the form
+        required:
+          - user_prompt

@@ -204,6 +204,8 @@ class FormInteractor:
                 await self.field_interactor.fill_text_area(selector, value)
             elif tag_name == "SELECT":
                 await self.field_interactor.select_option(selector, value)
+            elif tag_name == "BUTTON" or value == "click":
+                await self.field_interactor._force_click(selector)
             else:
                 print(f"Unhandled form element {tag_name} for selector {selector}")
 

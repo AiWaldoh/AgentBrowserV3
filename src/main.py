@@ -81,7 +81,7 @@ class ChatbotApp:
             await self.response_handler.handle_response(api_response)
 
             assistant_response = self.extract_assistant_response(api_response)
-            logger.info(assistant_response)
+            # logger.info(assistant_response)
 
 
 async def main() -> None:

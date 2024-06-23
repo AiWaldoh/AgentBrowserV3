@@ -1,5 +1,5 @@
 import yaml
-from tasks import GoToPageTask, InteractWithFormTask
+from tasks import GoToPageTask, InteractWithFormTask, TakeScreenshotTask
 from utils import TaskExecutor, AITaskRegistry
 
 

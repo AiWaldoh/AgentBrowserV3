@@ -38,7 +38,9 @@ def print_welcome_message():
     )
 
     # Print additional information with typewriter effect
-    typewriter_text = f"\n{Fore.CYAN}   Prepare to unleash the full potential of the web at your fingertips!{Style.RESET_ALL}"
+    typewriter_text = (
+        f"\n  Prepare to unleash the full potential of the web at your fingertips!"
+    )
     for char in typewriter_text:
         print(char, end="", flush=True)
         time.sleep(0.05)

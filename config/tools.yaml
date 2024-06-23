@@ -2,7 +2,7 @@ tools:
   - type: function
     function:
       name: go_to_page
-      description: Navigates to a specified URL
+      description: Navigates to a specified URL if the user asks to navigate to a url or page
       parameters:
         type: object
         properties:
@@ -23,3 +23,10 @@ tools:
             description: The user's input describing what to fill in the form or submit
         required:
           - user_prompt
+  - type: function
+    function:
+      name: take_screenshot
+      description: Takes a screenshot of the current page
+      parameters:
+        type: object
+        properties: {}

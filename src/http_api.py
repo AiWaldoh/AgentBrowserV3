@@ -2,6 +2,7 @@ import requests
 import logging
 from datetime import datetime
 from colorama import Fore, Style, init
+import json
 
 # Initialize colorama
 init(autoreset=True)
@@ -19,24 +20,52 @@ class HttpClient:
             format="%(asctime)s - %(levelname)s - %(message)s",
         )
 
+    def color_json(self, json_str):
+        try:
+            parsed = json.loads(json_str)
+            formatted = json.dumps(parsed, indent=2)
+            colored = ""
+            indent = 0
+            for line in formatted.split("\n"):
+                if ":" in line:
+                    key, value = line.split(":", 1)
+                    colored += (
+                        "  " * indent
+                        + f"{Fore.CYAN}{key}{Fore.RESET}:{Fore.YELLOW}{value}{Fore.RESET}\n"
+                    )
+                elif "{" in line or "[" in line:
+                    colored += f"{Fore.MAGENTA}{line}{Fore.RESET}\n"
+                    indent += 1
+                elif "}" in line or "]" in line:
+                    indent -= 1
+                    colored += f"{Fore.MAGENTA}{line}{Fore.RESET}\n"
+                else:
+                    colored += f"{Fore.YELLOW}{line}{Fore.RESET}\n"
+            return colored.rstrip()
+        except json.JSONDecodeError:
+            return f"{Fore.RED}Invalid JSON{Fore.RESET}"
+
     def log_request(self, method, url, data, response=None, error=None):
         time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        log_message = f"{time_str} - {method} - {url} - Data: {data} - Response: {response} - Error: {error}"
 
-        # Log to file
-        logging.info(log_message)
+        # Log to file (commented out)
+        # log_message = f"{time_str} - {method} - {url} - Data: {data} - Response: {response} - Error: {error}"
+        # logging.info(log_message)
 
         # Log to CLI with colors
         time_colored = f"{Fore.GREEN}{time_str}{Style.RESET_ALL}"
         method_colored = f"{Fore.CYAN}{method}{Style.RESET_ALL}"
         url_colored = f"{Fore.YELLOW}{url}{Style.RESET_ALL}"
-        data_colored = f"{Fore.MAGENTA}{data}{Style.RESET_ALL}"
-        response_colored = f"{Fore.BLUE}{response}{Style.RESET_ALL}"
+
+        data_colored = self.color_json(json.dumps(data)) if data else ""
+        response_colored = self.color_json(json.dumps(response)) if response else ""
         error_colored = f"{Fore.RED}{error}{Style.RESET_ALL}" if error else ""
 
-        cli_message = f"{time_colored} - {method_colored} - {url_colored} - Data: {data_colored} - Response: {response_colored}"
-        if error:
-            cli_message += f" - Error: {error_colored}"
+        cli_message = f"{time_colored} - {method_colored} - {url_colored}\n"
+        cli_message += f"Data:\n{data_colored}\n" if data else ""
+        cli_message += f"Response:\n{response_colored}\n" if response else ""
+        cli_message += f"Error: {error_colored}" if error else ""
+
         print(cli_message)
 
     def post(self, url, data):

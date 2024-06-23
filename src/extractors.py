@@ -16,6 +16,43 @@ class FormMetadataExtractor(MetadataExtractor):
         return {"forms": forms}
 
 
+class ButtonMetadataExtractor(MetadataExtractor):
+    async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
+        button_elements = await browser.page.query_selector_all("button")
+        unique_buttons: Dict[str, Dict[str, Any]] = {}
+
+        for button in button_elements:
+            button_id = await button.get_attribute("id") or ""
+            button_class = await button.get_attribute("class") or ""
+            key = f"{button_id}_{button_class}"
+
+            if key not in unique_buttons:
+                button_data = {}
+
+                if button_id:
+                    button_data["id"] = button_id
+                if button_class:
+                    button_data["class"] = button_class
+
+                button_type = await button.get_attribute("type")
+                if button_type:
+                    button_data["type"] = button_type
+
+                button_name = await button.get_attribute("name")
+                if button_name:
+                    button_data["name"] = button_name
+
+                inner_text = await button.inner_text()
+                if inner_text:
+                    button_data["inner_text"] = inner_text
+
+                if button_data:  # Only add if we have any non-empty attributes
+                    unique_buttons[key] = button_data
+
+        buttons_data = list(unique_buttons.values())
+        return {"buttons": buttons_data}
+
+
 class H1MetadataExtractor(MetadataExtractor):
     async def extract(self, browser: "WebBrowser") -> Dict[str, Any]:
         h1_elements = await browser.page.query_selector_all("h1")

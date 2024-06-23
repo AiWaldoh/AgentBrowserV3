@@ -14,6 +14,7 @@ class FormParsingAgent:
         PROMPT_TEMPLATE = f"""
         Given the following form data and user prompt, determine which fields are relevant and provide the CSS selectors for accessing them. Only return 1 selector per field.
         Don't forget that checkboxes and radio buttons have different values that need to be considered.
+        Make it a specific selector for the form element and the value of the field (input, select, checkbox, radio) since class selectors are not unique.
         Form data: {form_data}
         User prompt: {user_prompt}
 

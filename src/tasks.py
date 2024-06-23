@@ -18,6 +18,7 @@ from extractors import (
     PageTitleExtractor,
     ImagesMetadataExtractor,
     MetaDescriptionExtractor,
+    ButtonMetadataExtractor,
 )
 
 from agentFour import FormParsingAgent
@@ -30,7 +31,7 @@ class TakeScreenshotTask(Task):
         if browser:
             file_name = ScreenshotUtils.generate_screenshot_path()
             await browser.take_screenshot(file_name)
-            print(f"Screenshot captured and saved as: {file_name}")
+            # print(f"Screenshot captured and saved as: {file_name}")
             return file_name
         else:
             raise ValueError("Web browser dependency is missing")
@@ -48,6 +49,7 @@ class InteractWithFormTask(Task):
                 PageTitleExtractor(),
                 ImagesMetadataExtractor(),
                 MetaDescriptionExtractor(),
+                ButtonMetadataExtractor(),
             ]
         )
 
@@ -73,10 +75,13 @@ class InteractWithFormTask(Task):
 
         user_prompt = arguments.get("user_prompt", "")
         form_data = metadata["forms"]
+        buttons_data = metadata["buttons"]
 
+        combined_data = form_data + buttons_data
+        print(f"Form data: {combined_data}")
         try:
             field_mappings = await parsing_agent.determine_relevant_form_fields(
-                form_data, user_prompt
+                combined_data, user_prompt
             )
             if not field_mappings:
                 print("No relevant form fields found.")
